@@ -1,0 +1,41 @@
+Demultiplexing Sequence Data
+Started: 07/26/2023
+Finished: 
+
+
+
+
+Objectives
+
+    1) Use previously generated "raw" Illumina paired-end reads (FASTQs) as input files to analyze
+
+    2) Execute some file exploration of the FASTQ files
+
+    4) Create a table with information for each of the 4 FASTQ files
+
+    3) Write a python script to:
+        -Distribute phred score based on position in the read and generate a histogram
+        -Do this for all four files (2 index, 2 reads)
+
+
+
+
+Initial file exploration
+
+    The two read files are R1 and R4. The two index files are R3 and R4.
+
+    Read length:
+
+        The following bash command was used for each of the 4 files:
+
+            \$ zcat <name>.fq | grep -v "^@" | grep -v "^+" | awk '{print length $0}' | head 
+
+            outputs:
+                1294_S1_L008_R1_001.fastq.gz = 101
+                1294_S1_L008_R2_001.fastq.gz = 8
+                1294_S1_L008_R3_001.fastq.gz = 8
+                1294_S1_L008_R4_001.fastq.gz = 101
+
+    Phred encoding:
+
+        This is an Illumina sequence. The phred score is phred + 33.
