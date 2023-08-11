@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 
+
+#Argparse was used for easy commandline utilization and generaliziation
+
 import argparse
 import gzip
 import matplotlib.pyplot as plt
 import numpy as np
 
+#The following dictionary is used to compliment R3 index sequences
+
 complimentDict = {"A":"T", "T":"A", "C":"G", "G":"C", "N":"N"}
+
+#These variables will be used in the sequence sorting below
+
 knownIndexes = {}
 files = {}
 indexHopped = {}
@@ -49,6 +57,8 @@ def reverse_comp(seq: str):
 #         if line[0] != "sample":
 #             knownIndexes[line[1]] = line[0]
 
+#This block of code was used to seave the index files from the index.txt file
+
 with open("/projects/bgmp/shared/2017_sequencing/indexes.txt") as fh:
     for line in fh:
         line = line.strip('\n')
@@ -56,20 +66,25 @@ with open("/projects/bgmp/shared/2017_sequencing/indexes.txt") as fh:
         if line[0] != "sample":
             knownIndexes[line[4]] = 0
 
-print(knownIndexes)
+#The following block of code is used to generate all of the correct-matched fq files
 
 for key in knownIndexes:
         fh_R1 = open(f"{outputDir}/{key}_R1.fq", "w")
         fh_R2 = open(f"{outputDir}/{key}_R2.fq", "w")
         files[key] = [fh_R1, fh_R2]
 
+#Unmatched index generation
+
 fh_hopped_R1 = open(f"{outputDir}/index_hopped_R1.fq", "w")
 fh_hopped_R2 = open(f"{outputDir}/index_hopped_R2.fq", "w")
 fh_unknown_R1 = open(f"{outputDir}/unknown_index_R1.fq", "w")
 fh_unknown_R2 = open(f"{outputDir}/unknown_index_R2.fq", "w")
 
+#The following loop will read through all of the index files and read files and sort them appropriatly
 
 while True:
+
+    #Everyline from all four files is read simultaniously
 
     R1_line1 = R1.readline().strip()
     R1_line2 = R1.readline().strip()
@@ -91,6 +106,8 @@ while True:
     R4_line3 = R4.readline().strip()
     R4_line4 = R4.readline().strip()
 
+    #At the end of the files, the loop is terminated
+
     if R1_line1 == "":
         break
     totReads += 1
@@ -98,10 +115,7 @@ while True:
 
     currIndex = (R2_line2, R3_line2)
 
-    # if currIndex not in indexCountDict:
-    #     indexCountDict[currIndex] = 1
-    # else:
-    #     indexCountDict[currIndex] += 1
+    #The first conditional statment sorts out the matched index reads into their respective files
 
     if currIndex[0] == currIndex[1] and currIndex[0] in knownIndexes:
         files[currIndex[0]][0].write(f"{R1_line1}\t{currIndex[0]}-{currIndex[1]}\n{R1_line2}\n{R1_line3}\n{R1_line4}\n")
@@ -109,7 +123,8 @@ while True:
         knownIndexes[currIndex[0]] += 1
         numCorrectPairs += 1
 
-    else:
+    else: #The contents of this else statement determine if the unmatched reads are index hopped or unknown
+
         if currIndex[0] in knownIndexes and currIndex[1] in knownIndexes:
             fh_hopped_R1.write(f"{R1_line1}\t{currIndex[0]}-{currIndex[1]}\n{R1_line2}\n{R1_line3}\n{R1_line4}\n")
             fh_hopped_R2.write(f"{R4_line1}\t{currIndex[0]}-{currIndex[1]}\n{R4_line2}\n{R4_line3}\n{R4_line4}\n")
@@ -167,6 +182,8 @@ with open(f"{outputDir}/{outputSummaryFile}", "w") as fh:
 
     fh.write("Index Hopped Pairs and Counts\n")
     fh.write("Pairs\tCounts\n")
+
+#Proportion of reads graph generation
 
     for key in indexHopped:
         fh.write(f"{key}\t{indexHopped[key]}\n")
