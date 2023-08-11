@@ -1,9 +1,9 @@
 # Summary Information for demultiplexing
 
 - Total number of reads read 363246735
-- Number of matched reads: 331755033
-- Number of unknown reads: 30783962
-- Number of index swapping: 707740
+- Number of matched reads: 331755033 (91.33%)
+- Number of unknown reads: 30783962 (8.47%)
+- Number of index swapping: 707740 (0.19%)
 
 **Files generated**
 ```
