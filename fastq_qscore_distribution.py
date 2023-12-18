@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+# Author: Ian VanGordon
+# 07/21/2023
+
+'''
+This script evaluates the average quality score by position for a given FASTQ file.
+'''
+
 import matplotlib.pyplot as plt
 import argparse
 import numpy as np
@@ -11,14 +18,14 @@ def get_args():
     parser.add_argument("-o", "--outputfile", help="What do you want this file to be called", type=str)
     return parser.parse_args()
 
+def convert_phred(letter: str):
+    '''Converts a single character into a phred score. Assumes scores are phred+33.'''
+    return ord(letter) - 33
+
 args = get_args()
 
 file = args.filename
 output = args.outputfile
-
-def convert_phred(letter: str):
-    '''Converts a single character into a phred score. Assumes scores are phred+33.'''
-    return ord(letter) - 33
 
 numReads = 0
 j = 0

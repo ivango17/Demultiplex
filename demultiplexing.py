@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 
+# Author: Ian VanGordon
+# 08/01/2023
+
+'''
+This script takes a set of read files from paired end sequencing and demultiplexes them into their respective files given their index sequences.
+'''
+
 import argparse
 import gzip
 import matplotlib.pyplot as plt
 import numpy as np
 
-complimentDict = {"A":"T", "T":"A", "C":"G", "G":"C", "N":"N"}
-knownIndexes = {}
-files = {}
-indexHopped = {}
-unknownCounter = 0
-numCorrectPairs = 0
-numIndexSwapping = 0
-totReads = 0
+
+#===========================================================================================================================================================================================================================
+# Argparse setup
+#===========================================================================================================================================================================================================================
 
 def get_args():
     parser = argparse.ArgumentParser(description="This program demultiplexes Illumoina sequencing files.")
@@ -24,14 +27,6 @@ def get_args():
     parser.add_argument("-osf", "--outputsummary", help="What will the summary file be called", type=str)
     return parser.parse_args()
 
-args = get_args()
-R1 = gzip.open(args.R1, "rt")
-R2 = gzip.open(args.R2, "rt")
-R3 = gzip.open(args.R3, "rt")
-R4 = gzip.open(args.R4, "rt")
-outputDir = args.outputdir
-outputSummaryFile = args.outputsummary
-
 def reverse_comp(seq: str):
     '''This function takes a sequence as a string and returns the reverse compliment of that sequence.'''
     rcseq = ""
@@ -40,14 +35,33 @@ def reverse_comp(seq: str):
         rcseq += complimentDict[rseq[i]]
     return rcseq
 
-#This generates a dictionary with the known indexes
 
-# with open("./TEST-input_FASTQ/indexs.tsv") as fh:
-#     for line in fh:
-#         line = line.strip('\n')
-#         line = line.split()
-#         if line[0] != "sample":
-#             knownIndexes[line[1]] = line[0]
+#===========================================================================================================================================================================================================================
+# Variable Declaration
+#===========================================================================================================================================================================================================================
+
+complimentDict = {"A":"T", "T":"A", "C":"G", "G":"C", "N":"N"}
+knownIndexes = {}
+files = {}
+indexHopped = {}
+unknownCounter = 0
+numCorrectPairs = 0
+numIndexSwapping = 0
+totReads = 0
+
+
+#===========================================================================================================================================================================================================================
+# Opening files and creating dictionaries for indices
+#===========================================================================================================================================================================================================================
+
+args = get_args()
+R1 = gzip.open(args.R1, "rt")
+R2 = gzip.open(args.R2, "rt")
+R3 = gzip.open(args.R3, "rt")
+R4 = gzip.open(args.R4, "rt")
+outputDir = args.outputdir
+outputSummaryFile = args.outputsummary
+
 
 with open("/projects/bgmp/shared/2017_sequencing/indexes.txt") as fh:
     for line in fh:
@@ -68,6 +82,10 @@ fh_hopped_R2 = open(f"{outputDir}/index_hopped_R2.fq", "w")
 fh_unknown_R1 = open(f"{outputDir}/unknown_index_R1.fq", "w")
 fh_unknown_R2 = open(f"{outputDir}/unknown_index_R2.fq", "w")
 
+
+#===========================================================================================================================================================================================================================
+# Sorting sequences into their respective files (demultiplexing)
+#===========================================================================================================================================================================================================================
 
 while True:
 
@@ -98,11 +116,6 @@ while True:
 
     currIndex = (R2_line2, R3_line2)
 
-    # if currIndex not in indexCountDict:
-    #     indexCountDict[currIndex] = 1
-    # else:
-    #     indexCountDict[currIndex] += 1
-
     if currIndex[0] == currIndex[1] and currIndex[0] in knownIndexes:
         files[currIndex[0]][0].write(f"{R1_line1}\t{currIndex[0]}-{currIndex[1]}\n{R1_line2}\n{R1_line3}\n{R1_line4}\n")
         files[currIndex[1]][1].write(f"{R4_line1}\t{currIndex[0]}-{currIndex[1]}\n{R4_line2}\n{R4_line3}\n{R4_line4}\n")
@@ -127,6 +140,9 @@ while True:
             unknownCounter += 1
 
 
+#===========================================================================================================================================================================================================================
+# Closing all files
+#===========================================================================================================================================================================================================================
 
 #The below three blocks of statements close all of the output files and read files
 for key in files:
@@ -144,7 +160,9 @@ R3.close()
 R4.close()
 
 
-#Output file writing
+#===========================================================================================================================================================================================================================
+# Writing summary statistics to output file
+#===========================================================================================================================================================================================================================
 
 with open(f"{outputDir}/{outputSummaryFile}", "w") as fh:
     fh.write("Summary Information for demultiplexing\n\n")
@@ -171,6 +189,11 @@ with open(f"{outputDir}/{outputSummaryFile}", "w") as fh:
     for key in indexHopped:
         fh.write(f"{key}\t{indexHopped[key]}\n")
 
+
+#===========================================================================================================================================================================================================================
+# Creating a histogram of sample counts that were sorted correctly
+#===========================================================================================================================================================================================================================
+
 xaxis = []
 yaxis = []
 
@@ -184,10 +207,4 @@ plt.ylabel("Count")
 
 plt.bar(xaxis, yaxis, width=1, color="green")
 plt.savefig("Index_Proportion.png")
-
-
-
-    
-
-
 
